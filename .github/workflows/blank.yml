@@ -1,0 +1,24 @@
+name: Bump footer text
+
+on:
+  workflow_dispatch:           # run by hand
+  schedule:
+    - cron: "0 */6 * * *"      # or every 6 h for a repeated demo
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repo
+        uses: actions/checkout@v4
+
+      - name: Update footer timestamp
+        run: |
+          ts="$(date -u +'%Y-%m-%d %H:%M UTC')"
+          yq -i '
+            (.data.ADSENSE_CLIENT_ID) = "Deployed by NKP at " + strenv(ts)
+            ' release/kubernetes-manifests.yaml
+      - name: Commit & push
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Auto-bump footer → ${{ github.sha }}"
